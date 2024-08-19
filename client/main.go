@@ -34,12 +34,7 @@ func main() {
 	j, err := p.ParseBytes(body)
 	checkErr(err)
 
-	f, err := os.OpenFile("client\\cotacao.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	checkErr(err)
-	defer f.Close()
-
-	_, err = f.WriteString(fmt.Sprintf("%s - A cotação do dólar é de R$ %s\n", time.Now().Format("02/01/2006 15:04:05"), j.Get("USDBRL").GetStringBytes("bid")))
-	checkErr(err)
+	os.WriteFile("client\\cotacao.txt", []byte(fmt.Sprintf("Dólar: %s", j.Get("USDBRL").GetStringBytes("bid"))), 0644)
 	slog.Info("Cotação salva com sucesso")
 }
 
