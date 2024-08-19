@@ -14,11 +14,12 @@ import (
 )
 
 func main() {
-	slog.Info("Iniciando aplicação...")
-	prepareDB()
-
+	slog.Info("Iniciando aplicação")
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
 	slog.SetDefault(logger)
+
+	slog.Info("Preparando banco de dados")
+	prepareDB()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /cotacao", getCotacaoHandler)
@@ -28,7 +29,7 @@ func main() {
 }
 
 func getCotacaoHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(40*time.Millisecond))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(200*time.Millisecond))
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://economia.awesomeapi.com.br/json/last/USD-BRL", nil)
@@ -47,6 +48,9 @@ func getCotacaoHandler(w http.ResponseWriter, r *http.Request) {
 	checkErr(err)
 
 	insertCotacao(ctx, string(body))
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(body)
 }
 
@@ -63,7 +67,7 @@ func prepareDB() {
 }
 
 func insertCotacao(ctx context.Context, data string) {
-	ctxExec, cancel := context.WithTimeout(ctx, time.Duration(1*time.Millisecond))
+	ctxExec, cancel := context.WithTimeout(ctx, time.Duration(10*time.Millisecond))
 	defer cancel()
 
 	db := getDB()
